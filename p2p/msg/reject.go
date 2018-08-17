@@ -76,6 +76,10 @@ func (msg *Reject) CMD() string {
 	return p2p.CmdReject
 }
 
+func (msg *Reject) MaxLength() uint32 {
+	return p2p.MaxMessagePayload
+}
+
 func (msg *Reject) Serialize(writer io.Writer) error {
 	if err := common.WriteVarString(writer, msg.Cmd); err != nil {
 		return err

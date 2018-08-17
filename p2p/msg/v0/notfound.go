@@ -19,6 +19,10 @@ func (msg *NotFound) CMD() string {
 	return p2p.CmdNotFound
 }
 
+func (msg *NotFound) MaxLength() uint32 {
+	return common.UINT256SIZE
+}
+
 func (msg *NotFound) Serialize(w io.Writer) error {
 	return common.WriteElement(w, msg.Hash)
 }

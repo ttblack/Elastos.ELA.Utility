@@ -21,6 +21,10 @@ func (msg *Version) CMD() string {
 	return p2p.CmdVersion
 }
 
+func (msg *Version) MaxLength() uint32 {
+	return 35
+}
+
 func (msg *Version) Serialize(writer io.Writer) error {
 	return binary.Write(writer, binary.LittleEndian, msg)
 }

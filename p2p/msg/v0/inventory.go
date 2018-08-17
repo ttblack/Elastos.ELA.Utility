@@ -7,6 +7,8 @@ import (
 	"github.com/elastos/Elastos.ELA.Utility/p2p"
 )
 
+const MaxInvPerMsg = 100
+
 type Inv struct {
 	Hashes []*common.Uint256
 }
@@ -17,6 +19,10 @@ func NewInv(hashes []*common.Uint256) *Inv {
 
 func (msg *Inv) CMD() string {
 	return p2p.CmdInv
+}
+
+func (msg *Inv) MaxLength() uint32 {
+	return 4 + (MaxInvPerMsg * common.UINT256SIZE)
 }
 
 func (msg *Inv) Serialize(w io.Writer) error {

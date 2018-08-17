@@ -21,6 +21,10 @@ func (msg *Ping) CMD() string {
 	return p2p.CmdPing
 }
 
+func (msg *Ping) MaxLength() uint32 {
+	return 8
+}
+
 func (msg *Ping) Serialize(writer io.Writer) error {
 	return binary.Write(writer, binary.LittleEndian, msg.Nonce)
 }
