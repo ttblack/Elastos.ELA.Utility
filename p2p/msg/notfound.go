@@ -33,6 +33,10 @@ func (msg *NotFound) CMD() string {
 	return p2p.CmdNotFound
 }
 
+func (msg *NotFound) MaxLength() uint32 {
+	return 4 + (MaxInvPerMsg * maxInvVectPayload)
+}
+
 func (msg *NotFound) Serialize(writer io.Writer) error {
 	count := uint32(len(msg.InvList))
 	if err := common.WriteElement(writer, count); err != nil {

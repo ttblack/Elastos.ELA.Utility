@@ -184,7 +184,7 @@ func TestMsgHelper_Read_And_Write(t *testing.T) {
 	// no cmd
 	var body = make([]byte, 1024*8)
 	rand.Read(body)
-	header, err := buildHeader(987654321, "", body).Serialize()
+	header, err := BuildHeader(987654321, "", body).Serialize()
 	assert.NoError(t, err)
 	_, err = handler.Read(append(header, body...))
 	assert.EqualError(t, err, "[MsgHelper] make message failed unknown message type")
@@ -192,7 +192,7 @@ func TestMsgHelper_Read_And_Write(t *testing.T) {
 	assert.EqualError(t, err, "[MsgHelper] make message failed unknown message type")
 
 	// unknown cmd
-	header, err = buildHeader(987654321, "unknown", body).Serialize()
+	header, err = BuildHeader(987654321, "unknown", body).Serialize()
 	assert.NoError(t, err)
 	_, err = handler.Read(append(header, body...))
 	assert.EqualError(t, err, "[MsgHelper] make message failed unknown message type")
@@ -200,7 +200,7 @@ func TestMsgHelper_Read_And_Write(t *testing.T) {
 	assert.EqualError(t, err, "[MsgHelper] make message failed unknown message type")
 
 	// cmd too long
-	hdr := buildHeader(987654321, "", body)
+	hdr := BuildHeader(987654321, "", body)
 	for i := range hdr.CMD {
 		hdr.CMD[i] = 1
 	}
@@ -212,7 +212,7 @@ func TestMsgHelper_Read_And_Write(t *testing.T) {
 	assert.EqualError(t, err, "[MsgHelper] invalid message header")
 
 	// tamper message body
-	hdr = buildHeader(987654321, CmdVersion, body)
+	hdr = BuildHeader(987654321, CmdVersion, body)
 	header, err = hdr.Serialize()
 	assert.NoError(t, err)
 	rand.Read(body)

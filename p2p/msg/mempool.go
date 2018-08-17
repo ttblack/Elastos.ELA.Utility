@@ -12,6 +12,10 @@ func (msg *MemPool) CMD() string {
 	return p2p.CmdMemPool
 }
 
+func (msg *MemPool) MaxLength() uint32 {
+	return 0
+}
+
 func (msg *MemPool) Serialize(io.Writer) error {
 	return nil
 }

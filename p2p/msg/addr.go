@@ -8,6 +8,8 @@ import (
 	"github.com/elastos/Elastos.ELA.Utility/p2p"
 )
 
+const MaxAddrPerMsg = 1000
+
 type Addr struct {
 	AddrList []p2p.NetAddress
 }
@@ -20,6 +22,10 @@ func NewAddr(addresses []p2p.NetAddress) *Addr {
 
 func (msg *Addr) CMD() string {
 	return p2p.CmdAddr
+}
+
+func (msg *Addr) MaxLength() uint32 {
+	return 8 + (MaxAddrPerMsg * 42)
 }
 
 func (msg *Addr) Serialize(writer io.Writer) error {

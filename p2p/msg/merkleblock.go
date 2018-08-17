@@ -22,6 +22,10 @@ func (msg *MerkleBlock) CMD() string {
 	return p2p.CmdMerkleBlock
 }
 
+func (msg *MerkleBlock) MaxLength() uint32 {
+	return MaxBlockSize
+}
+
 func (msg *MerkleBlock) Serialize(writer io.Writer) error {
 	err := msg.Header.Serialize(writer)
 	if err != nil {

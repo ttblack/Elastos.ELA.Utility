@@ -19,6 +19,10 @@ func (msg *Tx) CMD() string {
 	return p2p.CmdTx
 }
 
+func (msg *Tx) MaxLength() uint32 {
+	return MaxBlockSize
+}
+
 func (msg *Tx) Serialize(writer io.Writer) error {
 	return msg.Transaction.Serialize(writer)
 }

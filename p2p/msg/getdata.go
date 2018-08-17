@@ -33,9 +33,13 @@ func (msg *GetData) CMD() string {
 	return p2p.CmdGetData
 }
 
+func (msg *GetData) MaxLength() uint32 {
+	return 4 + (MaxInvPerMsg * maxInvVectPayload)
+}
+
 func (msg *GetData) Serialize(writer io.Writer) error {
 	count := uint32(len(msg.InvList))
-	if err := common.WriteElement(writer, count); err != nil {
+	if err := common.WriteUint32(writer, count); err != nil {
 		return err
 	}
 
@@ -49,8 +53,8 @@ func (msg *GetData) Serialize(writer io.Writer) error {
 }
 
 func (msg *GetData) Deserialize(reader io.Reader) error {
-	var count uint32
-	if err := common.ReadElement(reader, &count); err != nil {
+	count, err := common.ReadUint32(reader)
+	if err != nil {
 		return err
 	}
 

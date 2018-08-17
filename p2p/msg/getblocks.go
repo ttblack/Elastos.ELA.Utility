@@ -7,6 +7,10 @@ import (
 	"github.com/elastos/Elastos.ELA.Utility/p2p"
 )
 
+// MaxBlockLocatorsPerMsg is the maximum number of block locator hashes allowed
+// per message.
+const MaxBlockLocatorsPerMsg = 500
+
 type GetBlocks struct {
 	Locator  []*Uint256
 	HashStop Uint256
@@ -21,6 +25,10 @@ func NewGetBlocks(locator []*Uint256, hashStop Uint256) *GetBlocks {
 
 func (msg *GetBlocks) CMD() string {
 	return p2p.CmdGetBlocks
+}
+
+func (msg *GetBlocks) MaxLength() uint32 {
+	return 4 + (MaxBlockLocatorsPerMsg * UINT256SIZE) + UINT256SIZE
 }
 
 func (msg *GetBlocks) Serialize(writer io.Writer) error {
