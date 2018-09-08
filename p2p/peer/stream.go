@@ -8,7 +8,7 @@ import (
 	"github.com/elastos/Elastos.ELA.Utility/p2p"
 )
 
-type rw struct {
+type stream struct {
 	// The P2P network ID
 	magic uint32
 
@@ -16,7 +16,7 @@ type rw struct {
 	makeEmptyMessage func(command string) (p2p.Message, error)
 }
 
-func (rw *rw) ReadMessage(r io.Reader) (p2p.Message, error) {
+func (s *stream) ReadMessage(r io.Reader) (p2p.Message, error) {
 	// Read message header
 	var headerBytes [p2p.HeaderSize]byte
 	if _, err := io.ReadFull(r, headerBytes[:]); err != nil {
@@ -30,12 +30,12 @@ func (rw *rw) ReadMessage(r io.Reader) (p2p.Message, error) {
 	}
 
 	// Check for messages from wrong network
-	if hdr.Magic != rw.magic {
+	if hdr.Magic != s.magic {
 		return nil, p2p.ErrUnmatchedMagic
 	}
 
 	// Create struct of appropriate message type based on the command.
-	msg, err := rw.makeEmptyMessage(hdr.GetCMD())
+	msg, err := s.makeEmptyMessage(hdr.GetCMD())
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (rw *rw) ReadMessage(r io.Reader) (p2p.Message, error) {
 	return msg, nil
 }
 
-func (rw *rw) WriteMessage(w io.Writer, msg p2p.Message) error {
+func (s *stream) WriteMessage(w io.Writer, msg p2p.Message) error {
 	// Serialize message
 	buf := new(bytes.Buffer)
 	if err := msg.Serialize(buf); err != nil {
@@ -79,7 +79,7 @@ func (rw *rw) WriteMessage(w io.Writer, msg p2p.Message) error {
 	}
 
 	// Create message header
-	hdr, err := p2p.BuildHeader(rw.magic, msg.CMD(), payload).Serialize()
+	hdr, err := p2p.BuildHeader(s.magic, msg.CMD(), payload).Serialize()
 	if err != nil {
 		return fmt.Errorf("serialize message header failed %s", err.Error())
 	}
