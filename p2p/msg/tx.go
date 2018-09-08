@@ -8,11 +8,11 @@ import (
 )
 
 type Tx struct {
-	Transaction common.Serializable
+	common.Serializable
 }
 
 func NewTx(tx common.Serializable) *Tx {
-	return &Tx{Transaction: tx}
+	return &Tx{Serializable: tx}
 }
 
 func (msg *Tx) CMD() string {
@@ -24,9 +24,9 @@ func (msg *Tx) MaxLength() uint32 {
 }
 
 func (msg *Tx) Serialize(writer io.Writer) error {
-	return msg.Transaction.Serialize(writer)
+	return msg.Serialize(writer)
 }
 
 func (msg *Tx) Deserialize(reader io.Reader) error {
-	return msg.Transaction.Deserialize(reader)
+	return msg.Deserialize(reader)
 }

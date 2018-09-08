@@ -1,7 +1,6 @@
 package msg
 
 import (
-	"encoding/binary"
 	"io"
 
 	"github.com/elastos/Elastos.ELA.Utility/common"
@@ -11,10 +10,10 @@ import (
 const MaxAddrPerMsg = 1000
 
 type Addr struct {
-	AddrList []p2p.NetAddress
+	AddrList []*p2p.NetAddress
 }
 
-func NewAddr(addresses []p2p.NetAddress) *Addr {
+func NewAddr(addresses []*p2p.NetAddress) *Addr {
 	msg := new(Addr)
 	msg.AddrList = addresses
 	return msg
@@ -29,7 +28,16 @@ func (msg *Addr) MaxLength() uint32 {
 }
 
 func (msg *Addr) Serialize(writer io.Writer) error {
-	return common.WriteElements(writer, uint64(len(msg.AddrList)), msg.AddrList)
+	if err := common.WriteUint64(writer, uint64(len(msg.AddrList))); err != nil {
+		return err
+	}
+
+	for i := range msg.AddrList {
+		if err := msg.AddrList[i].Serialize(writer); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (msg *Addr) Deserialize(reader io.Reader) error {
@@ -38,6 +46,12 @@ func (msg *Addr) Deserialize(reader io.Reader) error {
 		return err
 	}
 
-	msg.AddrList = make([]p2p.NetAddress, count)
-	return binary.Read(reader, binary.LittleEndian, &msg.AddrList)
+	msg.AddrList = make([]*p2p.NetAddress, count)
+	for i := range msg.AddrList {
+		msg.AddrList[i] = new(p2p.NetAddress)
+		if err := msg.AddrList[i].Deserialize(reader); err != nil {
+			return err
+		}
+	}
+	return nil
 }

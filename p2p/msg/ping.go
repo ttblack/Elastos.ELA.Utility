@@ -1,8 +1,8 @@
 package msg
 
 import (
-	"io"
 	"encoding/binary"
+	"io"
 
 	"github.com/elastos/Elastos.ELA.Utility/p2p"
 )
@@ -11,9 +11,9 @@ type Ping struct {
 	Nonce uint64
 }
 
-func NewPing(nonce uint32) *Ping {
+func NewPing(nonce uint64) *Ping {
 	ping := new(Ping)
-	ping.Nonce = uint64(nonce)
+	ping.Nonce = nonce
 	return ping
 }
 

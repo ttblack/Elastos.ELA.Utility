@@ -10,19 +10,19 @@ import (
 
 const defaultInvListSize = 100
 
-type Inventory struct {
+type Inv struct {
 	InvList []*InvVect
 }
 
-func NewInventory() *Inventory {
-	msg := &Inventory{
+func NewInv() *Inv {
+	msg := &Inv{
 		InvList: make([]*InvVect, 0, defaultInvListSize),
 	}
 	return msg
 }
 
 // AddInvVect adds an inventory vector to the message.
-func (msg *Inventory) AddInvVect(iv *InvVect) error {
+func (msg *Inv) AddInvVect(iv *InvVect) error {
 	if len(msg.InvList)+1 > MaxInvPerMsg {
 		return fmt.Errorf("GetData.AddInvVect too many invvect in message [max %v]", MaxInvPerMsg)
 	}
@@ -31,15 +31,15 @@ func (msg *Inventory) AddInvVect(iv *InvVect) error {
 	return nil
 }
 
-func (msg *Inventory) CMD() string {
+func (msg *Inv) CMD() string {
 	return p2p.CmdInv
 }
 
-func (msg *Inventory) MaxLength() uint32 {
+func (msg *Inv) MaxLength() uint32 {
 	return 4 + (MaxInvPerMsg * maxInvVectPayload)
 }
 
-func (msg *Inventory) Serialize(writer io.Writer) error {
+func (msg *Inv) Serialize(writer io.Writer) error {
 	if err := common.WriteUint32(writer, uint32(len(msg.InvList))); err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func (msg *Inventory) Serialize(writer io.Writer) error {
 	return nil
 }
 
-func (msg *Inventory) Deserialize(reader io.Reader) error {
+func (msg *Inv) Deserialize(reader io.Reader) error {
 	count, err := common.ReadUint32(reader)
 	if err != nil {
 		return err
