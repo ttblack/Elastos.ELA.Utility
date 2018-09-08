@@ -1,4 +1,4 @@
-package addrmgr
+package connmgr
 
 import "github.com/elastos/Elastos.ELA.Utility/elalog"
 
@@ -20,7 +20,7 @@ func DisableLog() {
 
 // UseLogger uses a specified Logger to output package logging info.
 // This should be used in preference to SetLogWriter if the caller is also
-// using btclog.
+// using elalog.
 func UseLogger(logger elalog.Logger) {
 	log = logger
 }
