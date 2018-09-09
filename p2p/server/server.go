@@ -1172,6 +1172,8 @@ func newServer(origCfg *Config) (*server, error) {
 	}
 
 	s := server{
+		cfg:         cfg,
+		sentNonces:  newMruNonceMap(50),
 		addrManager: amgr,
 		newPeers:    make(chan *serverPeer, cfg.MaxPeers),
 		donePeers:   make(chan *serverPeer, cfg.MaxPeers),
