@@ -81,8 +81,8 @@ func (c *Config) AddMessageFunc(messageFunc MessageFunc) {
 }
 
 func (c *Config) handleMessage(peer *Peer, msg p2p.Message) {
-	for _, handler := range c.messageFuncs {
-		handler(peer, msg)
+	for _, messageFunc := range c.messageFuncs {
+		messageFunc(peer, msg)
 	}
 }
 
@@ -790,6 +790,7 @@ func (p *Peer) readRemoteVersionMsg() error {
 		return err
 	}
 
+	p.cfg.handleMessage(p, remoteVerMsg)
 	return nil
 }
 
