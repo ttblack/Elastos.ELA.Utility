@@ -26,9 +26,9 @@ func (msg *Block) MaxLength() uint32 {
 }
 
 func (msg *Block) Serialize(writer io.Writer) error {
-	return msg.Serialize(writer)
+	return msg.Serializable.Serialize(writer)
 }
 
 func (msg *Block) Deserialize(reader io.Reader) error {
-	return msg.Deserialize(reader)
+	return msg.Serializable.Deserialize(reader)
 }

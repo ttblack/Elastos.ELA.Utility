@@ -24,9 +24,9 @@ func (msg *Tx) MaxLength() uint32 {
 }
 
 func (msg *Tx) Serialize(writer io.Writer) error {
-	return msg.Serialize(writer)
+	return msg.Serializable.Serialize(writer)
 }
 
 func (msg *Tx) Deserialize(reader io.Reader) error {
-	return msg.Deserialize(reader)
+	return msg.Serializable.Deserialize(reader)
 }
