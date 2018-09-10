@@ -438,7 +438,11 @@ func (p *Peer) PushAddrMsg(addresses []*p2p.NetAddress) ([]*p2p.NetAddress, erro
 
 // handlePingMsg is invoked when a peer receives a ping message.
 func (p *Peer) handlePingMsg(ping *msg.Ping) {
-	p.UpdateHeight(uint32(ping.Nonce))
+	// Update peer height when height has changed.
+	newHeight := uint32(ping.Nonce)
+	if p.Height() != newHeight {
+		p.UpdateHeight(newHeight)
+	}
 	p.SendMessage(msg.NewPong(p.cfg.BestHeight()), nil)
 }
 
