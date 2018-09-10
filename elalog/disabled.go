@@ -16,7 +16,3 @@ func (l *disableLog) Trace(e ...interface{})                 {}
 func (l *disableLog) Tracef(format string, e ...interface{}) {}
 func (l *disableLog) Debug(e ...interface{})                 {}
 func (l *disableLog) Debugf(format string, e ...interface{}) {}
-
-func init() {
-	Disabled = &disableLog{}
-}
