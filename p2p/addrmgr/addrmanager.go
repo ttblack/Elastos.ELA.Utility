@@ -757,7 +757,7 @@ func (a *AddrManager) GetAddress() *KnownAddress {
 			ka := e.Value.(*KnownAddress)
 			randval := a.rand.Intn(large)
 			if float64(randval) < (factor * ka.chance() * float64(large)) {
-				log.Tracef("Selected %v from tried bucket",
+				log.Tracef("Selected %s from tried bucket",
 					NetAddressKey(ka.na))
 				return ka
 			}
@@ -785,7 +785,7 @@ func (a *AddrManager) GetAddress() *KnownAddress {
 			}
 			randval := a.rand.Intn(large)
 			if float64(randval) < (factor * ka.chance() * float64(large)) {
-				log.Tracef("Selected %v from new bucket",
+				log.Tracef("Selected %s from new bucket",
 					NetAddressKey(ka.na))
 				return ka
 			}

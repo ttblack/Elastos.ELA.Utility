@@ -71,8 +71,8 @@ func dialTimeout(addr net.Addr) (net.Conn, error) {
 // for the server.
 func NewDefaultConfig(
 	magic uint32,
-	seeds []string,
-	listenAddrs []string,
+	defaultPort uint16,
+	seeds, listenAddrs []string,
 	onNewPeer func(*peer.Peer),
 	onDonePeer func(*peer.Peer),
 	makeEmptyMessage func(string) (p2p.Message, error),
@@ -83,7 +83,7 @@ func NewDefaultConfig(
 		ListenAddrs:      listenAddrs,
 		ExternalIPs:      nil,
 		Upnp:             false,
-		DefaultPort:      0,
+		DefaultPort:      defaultPort,
 		DisableListen:    false,
 		DisableRelayTx:   false,
 		MaxPeers:         defaultMaxPeers,

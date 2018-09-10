@@ -753,11 +753,10 @@ func (s *server) peerDoneHandler(sp *serverPeer) {
 // peers to and from the server, banning peers, and broadcasting messages to
 // peers.  It must be run in a goroutine.
 func (s *server) peerHandler() {
-	// Start the address manager and sync manager, both of which are needed
-	// by peers.  This is done here since their lifecycle is closely tied
-	// to this handler and rather than adding more channels to sychronize
-	// things, it's easier and slightly faster to simply start and stop them
-	// in this handler.
+	// Start the address manager, which are needed by peers.  This is done
+	// here since their lifecycle is closely tied  to this handler and rather
+	// than adding more channels, it's easier and slightly faster to simply
+	// start and stop them in this handler.
 	s.addrManager.Start()
 
 	log.Tracef("Starting peer handler")
@@ -1186,42 +1185,40 @@ func newServer(origCfg *Config) (*server, error) {
 	}
 
 	// Setup a function to return new addresses to connect to.
-	var newAddressFunc func() (net.Addr, error)
-	if len(cfg.SeedPeers) == 0 {
-		newAddressFunc = func() (net.Addr, error) {
-			for tries := 0; tries < 100; tries++ {
-				addr := s.addrManager.GetAddress()
-				if addr == nil {
-					break
-				}
-
-				// Address will not be invalid, local or unroutable
-				// because addrmanager rejects those on addition.
-				// Just check that we don't already have an address
-				// in the same group so that we are not connecting
-				// to the same network segment at the expense of
-				// others.
-				key := addrmgr.GroupKey(addr.NetAddress())
-				if s.OutboundGroupCount(key) != 0 {
-					continue
-				}
-
-				// only allow recent nodes (10mins) after we failed 30 times
-				if tries < 30 && time.Since(addr.LastAttempt()) < 10*time.Minute {
-					continue
-				}
-
-				// allow nondefault ports after 50 failed tries.
-				if tries < 50 && addr.NetAddress().Port != cfg.DefaultPort {
-					continue
-				}
-
-				addrString := addrmgr.NetAddressKey(addr.NetAddress())
-				return addrStringToNetAddr(addrString)
+	var newAddressFunc = func() (net.Addr, error) {
+		for tries := 0; tries < 100; tries++ {
+			addr := s.addrManager.GetAddress()
+			if addr == nil {
+				break
 			}
 
-			return nil, errors.New("no valid connect address")
+			log.Debugf("netAddressFunc pick addr %v", addr.NetAddress())
+			// Address will not be invalid, local or unroutable
+			// because addrmanager rejects those on addition.
+			// Just check that we don't already have an address
+			// in the same group so that we are not connecting
+			// to the same network segment at the expense of
+			// others.
+			key := addrmgr.GroupKey(addr.NetAddress())
+			if s.OutboundGroupCount(key) != 0 {
+				continue
+			}
+
+			// only allow recent nodes (10mins) after we failed 30 times
+			if tries < 30 && time.Since(addr.LastAttempt()) < 10*time.Minute {
+				continue
+			}
+
+			// allow nondefault ports after 50 failed tries.
+			if tries < 50 && addr.NetAddress().Port != cfg.DefaultPort {
+				continue
+			}
+
+			addrString := addrmgr.NetAddressKey(addr.NetAddress())
+			return addrStringToNetAddr(addrString)
 		}
+
+		return nil, errors.New("no valid connect address")
 	}
 
 	// Create a connection manager.
