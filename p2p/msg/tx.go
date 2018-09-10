@@ -1,11 +1,12 @@
 package msg
 
 import (
-	"io"
-
 	"github.com/elastos/Elastos.ELA.Utility/common"
 	"github.com/elastos/Elastos.ELA.Utility/p2p"
 )
+
+// Ensure Tx implement p2p.Message interface.
+var _ p2p.Message = (*Tx)(nil)
 
 type Tx struct {
 	common.Serializable
@@ -21,12 +22,4 @@ func (msg *Tx) CMD() string {
 
 func (msg *Tx) MaxLength() uint32 {
 	return MaxBlockSize
-}
-
-func (msg *Tx) Serialize(writer io.Writer) error {
-	return msg.Serializable.Serialize(writer)
-}
-
-func (msg *Tx) Deserialize(reader io.Reader) error {
-	return msg.Serializable.Deserialize(reader)
 }

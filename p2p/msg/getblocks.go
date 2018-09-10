@@ -11,6 +11,9 @@ import (
 // per message.
 const MaxBlockLocatorsPerMsg = 500
 
+// Ensure GetBlocks implement p2p.Message interface.
+var _ p2p.Message = (*GetBlocks)(nil)
+
 type GetBlocks struct {
 	Locator  []*Uint256
 	HashStop Uint256

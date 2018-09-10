@@ -2,6 +2,9 @@ package msg
 
 import "github.com/elastos/Elastos.ELA.Utility/p2p"
 
+// Ensure Pong implement p2p.Message interface.
+var _ p2p.Message = (*Pong)(nil)
+
 type Pong struct {
 	Ping
 }

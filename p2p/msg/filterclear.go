@@ -1,13 +1,13 @@
 package msg
 
 import (
-	"io"
-
 	"github.com/elastos/Elastos.ELA.Utility/p2p"
 )
 
-type FilterClear struct {
-}
+// Ensure FilterClear implement p2p.Message interface.
+var _ p2p.Message = (*FilterClear)(nil)
+
+type FilterClear struct{ empty }
 
 func (msg *FilterClear) CMD() string {
 	return p2p.CmdFilterClear
@@ -15,12 +15,4 @@ func (msg *FilterClear) CMD() string {
 
 func (msg *FilterClear) MaxLength() uint32 {
 	return 0
-}
-
-func (msg *FilterClear) Serialize(writer io.Writer) error {
-	return nil
-}
-
-func (msg *FilterClear) Deserialize(reader io.Reader) error {
-	return nil
 }

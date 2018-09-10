@@ -17,6 +17,9 @@ const (
 	MaxFilterLoadFilterSize = 36000
 )
 
+// Ensure FilterLoad implement p2p.Message interface.
+var _ p2p.Message = (*FilterLoad)(nil)
+
 type FilterLoad struct {
 	Filter    []byte
 	HashFuncs uint32

@@ -7,6 +7,9 @@ import (
 	"github.com/elastos/Elastos.ELA.Utility/p2p"
 )
 
+// Ensure Ping implement p2p.Message interface.
+var _ p2p.Message = (*Ping)(nil)
+
 type Ping struct {
 	Nonce uint64
 }

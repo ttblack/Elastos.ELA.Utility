@@ -8,6 +8,9 @@ import (
 	"github.com/elastos/Elastos.ELA.Utility/p2p"
 )
 
+// Ensure Reject implement p2p.Message interface.
+var _ p2p.Message = (*Reject)(nil)
+
 // RejectCode represents a numeric value by which a remote peer indicates
 // why a message was rejected.
 type RejectCode uint8

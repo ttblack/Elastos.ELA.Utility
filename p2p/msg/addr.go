@@ -9,6 +9,9 @@ import (
 
 const MaxAddrPerMsg = 1000
 
+// Ensure Addr implement p2p.Message interface.
+var _ p2p.Message = (*Addr)(nil)
+
 type Addr struct {
 	AddrList []*p2p.NetAddress
 }

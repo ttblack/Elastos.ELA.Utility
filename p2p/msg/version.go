@@ -8,6 +8,9 @@ import (
 	"github.com/elastos/Elastos.ELA.Utility/p2p"
 )
 
+// Ensure Version implement p2p.Message interface.
+var _ p2p.Message = (*Version)(nil)
+
 type Version struct {
 	Version   uint32
 	Services  uint64

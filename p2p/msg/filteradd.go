@@ -14,6 +14,9 @@ const (
 	MaxFilterAddDataSize = 520
 )
 
+// Ensure FilterAdd implement p2p.Message interface.
+var _ p2p.Message = (*FilterAdd)(nil)
+
 type FilterAdd struct {
 	Data []byte
 }

@@ -7,6 +7,9 @@ import (
 	"github.com/elastos/Elastos.ELA.Utility/p2p"
 )
 
+// Ensure MerkleBlock implement p2p.Message interface.
+var _ p2p.Message = (*MerkleBlock)(nil)
+
 type MerkleBlock struct {
 	Header       common.Serializable
 	Transactions uint32

@@ -10,6 +10,9 @@ import (
 
 const defaultInvListSize = 100
 
+// Ensure Inv implement p2p.Message interface.
+var _ p2p.Message = (*Inv)(nil)
+
 type Inv struct {
 	InvList []*InvVect
 }
