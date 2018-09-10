@@ -223,14 +223,12 @@ func (cm *ConnManager) handleFailedConn(c *ConnReq) {
 // are processed and mapped by their assigned ids.
 func (cm *ConnManager) connHandler() {
 
-	var (
-		// pending holds all registered conn requests that have yet to
-		// succeed.
-		pending = make(map[uint64]*ConnReq)
+	// pending holds all registered conn requests that have yet to
+	// succeed.
+	pending := make(map[uint64]*ConnReq)
 
-		// conns represents the set of all actively connected peers.
-		conns = make(map[uint64]*ConnReq, cm.cfg.TargetOutbound)
-	)
+	// conns represents the set of all actively connected peers.
+	conns := make(map[uint64]*ConnReq, cm.cfg.TargetOutbound)
 
 out:
 	for {
