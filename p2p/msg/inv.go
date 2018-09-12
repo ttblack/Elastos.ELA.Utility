@@ -27,7 +27,7 @@ func NewInv() *Inv {
 // AddInvVect adds an inventory vector to the message.
 func (msg *Inv) AddInvVect(iv *InvVect) error {
 	if len(msg.InvList)+1 > MaxInvPerMsg {
-		return fmt.Errorf("GetData.AddInvVect too many invvect in message [max %v]", MaxInvPerMsg)
+		return fmt.Errorf("AddInvVect too many invvect in message [max %v]", MaxInvPerMsg)
 	}
 
 	msg.InvList = append(msg.InvList, iv)
@@ -43,7 +43,8 @@ func (msg *Inv) MaxLength() uint32 {
 }
 
 func (msg *Inv) Serialize(writer io.Writer) error {
-	if err := common.WriteUint32(writer, uint32(len(msg.InvList))); err != nil {
+	err := common.WriteUint32(writer, uint32(len(msg.InvList)))
+	if err != nil {
 		return err
 	}
 
@@ -62,13 +63,13 @@ func (msg *Inv) Deserialize(reader io.Reader) error {
 		return err
 	}
 
-	msg.InvList = make([]*InvVect, 0, count)
+	msg.InvList = make([]*InvVect, 0, defaultInvListSize)
 	for i := uint32(0); i < count; i++ {
-		vect := new(InvVect)
+		var vect InvVect
 		if err := vect.Deserialize(reader); err != nil {
 			return err
 		}
-		msg.InvList = append(msg.InvList, vect)
+		msg.InvList = append(msg.InvList, &vect)
 	}
 
 	return nil
