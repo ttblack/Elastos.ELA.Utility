@@ -62,8 +62,12 @@ func (msg *Inv) Deserialize(reader io.Reader) error {
 	if err != nil {
 		return err
 	}
+	// Limit to max inventory vectors per message.
+	if count > MaxInvPerMsg {
+		return fmt.Errorf("too many invvect in message [%v]", count)
+	}
 
-	msg.InvList = make([]*InvVect, 0, defaultInvListSize)
+	msg.InvList = make([]*InvVect, 0, count)
 	for i := uint32(0); i < count; i++ {
 		var vect InvVect
 		if err := vect.Deserialize(reader); err != nil {
