@@ -57,6 +57,18 @@ func (msg *MerkleBlock) Deserialize(reader io.Reader) error {
 		return err
 	}
 
-	msg.Hashes = make([]*common.Uint256, hashes)
-	return common.ReadElements(reader, &msg.Hashes, &msg.Flags)
+	for i := uint32(0); i < hashes; i++ {
+		var hash common.Uint256
+		if err := hash.Deserialize(reader); err != nil {
+			return err
+		}
+		msg.Hashes = append(msg.Hashes, &hash)
+	}
+
+	msg.Flags, err = common.ReadVarBytes(reader)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
