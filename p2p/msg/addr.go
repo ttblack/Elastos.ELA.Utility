@@ -49,12 +49,12 @@ func (msg *Addr) Deserialize(reader io.Reader) error {
 		return err
 	}
 
-	msg.AddrList = make([]*p2p.NetAddress, count)
-	for i := range msg.AddrList {
-		msg.AddrList[i] = new(p2p.NetAddress)
-		if err := msg.AddrList[i].Deserialize(reader); err != nil {
+	for i := uint64(0); i < count; i++ {
+		var addr p2p.NetAddress
+		if err := addr.Deserialize(reader); err != nil {
 			return err
 		}
+		msg.AddrList = append(msg.AddrList, &addr)
 	}
 	return nil
 }
