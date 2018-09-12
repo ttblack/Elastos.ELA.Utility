@@ -1,6 +1,7 @@
 package msg
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/elastos/Elastos.ELA.Utility/common"
@@ -52,12 +53,17 @@ func (msg *MerkleBlock) Deserialize(reader io.Reader) error {
 		return err
 	}
 
-	hashes, err := common.ReadUint32(reader)
+	count, err := common.ReadUint32(reader)
 	if err != nil {
 		return err
 	}
+	if count > MaxTxPerBlock {
+		return fmt.Errorf("MerkleBlock.Deserialize too many transaction"+
+			" hashes for message [count %v, max %v]", count, MaxTxPerBlock)
+	}
 
-	for i := uint32(0); i < hashes; i++ {
+	msg.Hashes = make([]*common.Uint256, 0, count)
+	for i := uint32(0); i < count; i++ {
 		var hash common.Uint256
 		if err := hash.Deserialize(reader); err != nil {
 			return err
@@ -66,9 +72,5 @@ func (msg *MerkleBlock) Deserialize(reader io.Reader) error {
 	}
 
 	msg.Flags, err = common.ReadVarBytes(reader)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }

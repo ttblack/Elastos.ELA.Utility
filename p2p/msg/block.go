@@ -7,6 +7,8 @@ import (
 
 const MaxBlockSize = 8000000
 
+const MaxTxPerBlock = 100000
+
 // Ensure Block implement p2p.Message interface.
 var _ p2p.Message = (*Block)(nil)
 
