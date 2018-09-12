@@ -1,6 +1,7 @@
 package msg
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/elastos/Elastos.ELA.Utility/common"
@@ -43,7 +44,12 @@ func (msg *GetBlocks) Deserialize(reader io.Reader) error {
 	if err != nil {
 		return err
 	}
+	if count > MaxBlockLocatorsPerMsg {
+		return fmt.Errorf("GetBlocks.Deserialize too many block locator"+
+			" hashes for message [count %v, max %v]", count, MaxBlockLocatorsPerMsg)
+	}
 
+	msg.Locator = make([]*common.Uint256, 0, count)
 	for i:= uint32(0); i< count ; i++{
 		var hash common.Uint256
 		if err := hash.Deserialize(reader); err != nil {
