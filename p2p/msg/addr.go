@@ -1,6 +1,7 @@
 package msg
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/elastos/Elastos.ELA.Utility/common"
@@ -48,7 +49,12 @@ func (msg *Addr) Deserialize(reader io.Reader) error {
 	if err != nil {
 		return err
 	}
+	if count > MaxAddrPerMsg {
+		return fmt.Errorf("Addr.Deserialize too many addresses"+
+			" for message [count %v, max %v]", count, MaxAddrPerMsg)
+	}
 
+	msg.AddrList = make([]*p2p.NetAddress, 0, count)
 	for i := uint64(0); i < count; i++ {
 		var addr p2p.NetAddress
 		if err := addr.Deserialize(reader); err != nil {
