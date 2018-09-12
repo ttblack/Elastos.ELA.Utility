@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -144,4 +145,10 @@ func (s *stdout) Debugf(format string, e ...interface{}) {
 	e = append([]interface{}{f.Name(), fileName, line}, e...)
 
 	s.printf(DebugPrefix, "%s %s:%d "+format, e...)
+}
+
+func newStdout() *stdout {
+	return &stdout{
+		logger: log.New(os.Stdout, "*", log.LstdFlags|log.Lmicroseconds),
+	}
 }
