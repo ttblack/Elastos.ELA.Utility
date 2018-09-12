@@ -38,6 +38,13 @@ func (msg *Inv) Deserialize(r io.Reader) error {
 		return err
 	}
 
-	msg.Hashes = make([]*common.Uint256, count)
-	return common.ReadElement(r, &msg.Hashes)
+	for i := uint32(0); i < count; i++ {
+		var hash common.Uint256
+		if err := hash.Deserialize(r); err != nil {
+			return err
+		}
+		msg.Hashes = append(msg.Hashes, &hash)
+	}
+
+	return nil
 }
