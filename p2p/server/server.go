@@ -119,7 +119,6 @@ type server struct {
 	wg          sync.WaitGroup
 	quit        chan struct{}
 	nat         NAT
-	services    p2p.ServiceFlag
 }
 
 // IPeer extends the peer to maintain state shared by the server.
@@ -672,7 +671,7 @@ func newPeerConfig(sp *serverPeer) *peer.Config {
 	cfg := &peer.Config{
 		Magic:            sp.server.cfg.MagicNumber,
 		ProtocolVersion:  peer.MaxProtocolVersion,
-		Services:         sp.server.services,
+		Services:         sp.server.cfg.Services,
 		DisableRelayTx:   sp.server.cfg.DisableRelayTx,
 		HostToNetAddress: sp.server.addrManager.HostToNetAddress,
 		MakeEmptyMessage: sp.server.cfg.MakeEmptyMessage,
@@ -1011,7 +1010,7 @@ out:
 					continue out
 				}
 				na := p2p.NewNetAddressIPPort(externalip, uint16(listenPort),
-					s.services)
+					s.cfg.Services)
 				err = s.addrManager.AddLocalAddress(na, addrmgr.UpnpPrio)
 				if err != nil {
 					// XXX DeletePortMapping?
@@ -1153,15 +1152,13 @@ func (s *server) PersistentPeers() []IPeer {
 func newServer(origCfg *Config) (*server, error) {
 	cfg := *origCfg // Copy to avoid mutating caller.
 
-	services := defaultServices
-
 	amgr := addrmgr.New("./data/")
 
 	var listeners []net.Listener
 	var nat NAT
 	if !cfg.DisableListen {
 		var err error
-		listeners, nat, err = initListeners(amgr, cfg, services)
+		listeners, nat, err = initListeners(amgr, cfg, defaultServices)
 		if err != nil {
 			return nil, err
 		}
@@ -1181,7 +1178,6 @@ func newServer(origCfg *Config) (*server, error) {
 		broadcast:   make(chan broadcastMsg, cfg.MaxPeers),
 		quit:        make(chan struct{}),
 		nat:         nat,
-		services:    services,
 	}
 
 	// Setup a function to return new addresses to connect to.
