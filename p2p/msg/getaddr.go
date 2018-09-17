@@ -16,3 +16,5 @@ func (msg *GetAddr) CMD() string {
 func (msg *GetAddr) MaxLength() uint32 {
 	return 0
 }
+
+func NewGetAddr() *GetAddr {return &GetAddr{}}
