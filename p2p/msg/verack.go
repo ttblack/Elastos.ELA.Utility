@@ -16,3 +16,5 @@ func (msg *VerAck) CMD() string {
 func (msg *VerAck) MaxLength() uint32 {
 	return 0
 }
+
+func NewVerAck() *VerAck { return &VerAck{} }
