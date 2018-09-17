@@ -132,8 +132,7 @@ type Peer struct {
 	connected  int32
 	disconnect int32
 
-	conn   net.Conn
-	stream *stream
+	conn net.Conn
 
 	// These fields are set at creation time and never modified, so they are
 	// safe to read from concurrently without a mutex.
@@ -439,10 +438,12 @@ func (p *Peer) PushAddrMsg(addresses []*p2p.NetAddress) ([]*p2p.NetAddress, erro
 // handlePingMsg is invoked when a peer receives a ping message.
 func (p *Peer) handlePingMsg(ping *msg.Ping) {
 	// Update peer height when height has changed.
+	p.statsMtx.Lock()
 	newHeight := uint32(ping.Nonce)
-	if p.Height() != newHeight {
-		p.UpdateHeight(newHeight)
+	if p.height != newHeight {
+		p.height = newHeight
 	}
+	p.statsMtx.Unlock()
 	p.SendMessage(msg.NewPong(p.cfg.BestHeight()), nil)
 }
 
@@ -456,7 +457,7 @@ func (p *Peer) handlePongMsg(pong *msg.Pong) {
 }
 
 func (p *Peer) readMessage() (p2p.Message, error) {
-	msg, err := p.stream.ReadMessage(p.conn)
+	msg, err := p2p.ReadMessage(p.conn, p.cfg.Magic, p.cfg.MakeEmptyMessage)
 	// Use closures to log expensive operations so they are only run when
 	// the logging level requires it.
 	log.Debugf("%v", newLogClosure(func() string {
@@ -488,7 +489,7 @@ func (p *Peer) writeMessage(msg p2p.Message) error {
 		return fmt.Sprintf("Sending %v%s to %s", msg.CMD(), summary, p)
 	}))
 
-	return p.stream.WriteMessage(p.conn, msg)
+	return p2p.WriteMessage(p.conn, p.cfg.Magic, msg)
 }
 
 // shouldHandleIOError returns whether or not the passed error, which is
@@ -942,7 +943,6 @@ func newPeerBase(origCfg *Config, inbound bool) *Peer {
 		cfg:             cfg, // Copy so caller can't mutate.
 		services:        cfg.Services,
 		protocolVersion: cfg.ProtocolVersion,
-		stream:          &stream{magic: cfg.Magic, makeEmptyMessage: cfg.MakeEmptyMessage},
 	}
 	return &p
 }
