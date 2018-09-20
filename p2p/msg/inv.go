@@ -42,14 +42,21 @@ func (msg *Inv) MaxLength() uint32 {
 	return 4 + (MaxInvPerMsg * maxInvVectPayload)
 }
 
-func (msg *Inv) Serialize(writer io.Writer) error {
-	err := common.WriteUint32(writer, uint32(len(msg.InvList)))
+func (msg *Inv) Serialize(w io.Writer) error {
+	// Limit to max inventory vectors per message.
+	count := len(msg.InvList)
+	if count > MaxInvPerMsg {
+		str := fmt.Sprintf("too many invvect in message [%v]", count)
+		return common.FuncError("Inv.Serialize", str)
+	}
+
+	err := common.WriteUint32(w, uint32(len(msg.InvList)))
 	if err != nil {
 		return err
 	}
 
-	for _, vect := range msg.InvList {
-		if err := vect.Serialize(writer); err != nil {
+	for _, iv := range msg.InvList {
+		if err := iv.Serialize(w); err != nil {
 			return err
 		}
 	}
@@ -57,23 +64,29 @@ func (msg *Inv) Serialize(writer io.Writer) error {
 	return nil
 }
 
-func (msg *Inv) Deserialize(reader io.Reader) error {
-	count, err := common.ReadUint32(reader)
+func (msg *Inv) Deserialize(r io.Reader) error {
+	count, err := common.ReadUint32(r)
 	if err != nil {
 		return err
 	}
+
 	// Limit to max inventory vectors per message.
 	if count > MaxInvPerMsg {
-		return fmt.Errorf("too many invvect in message [%v]", count)
+		str := fmt.Sprintf("too many invvect in message [%v]", count)
+		return common.FuncError("Inv.Deserialize", str)
 	}
 
+	// Create a contiguous slice of inventory vectors to deserialize into in
+	// order to reduce the number of allocations.
+	invList := make([]InvVect, count)
 	msg.InvList = make([]*InvVect, 0, count)
 	for i := uint32(0); i < count; i++ {
-		var vect InvVect
-		if err := vect.Deserialize(reader); err != nil {
+		iv := &invList[i]
+		err := iv.Deserialize(r)
+		if err != nil {
 			return err
 		}
-		msg.InvList = append(msg.InvList, &vect)
+		msg.InvList = append(msg.InvList, iv)
 	}
 
 	return nil

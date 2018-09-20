@@ -53,10 +53,10 @@ func NewInvVect(typ InvType, hash *common.Uint256) *InvVect {
 	}
 }
 
-func (vect *InvVect) Serialize(writer io.Writer) error {
-	return common.WriteElements(writer, vect.Type, vect.Hash)
+func (vect *InvVect) Serialize(w io.Writer) error {
+	return common.WriteElements(w, vect.Type, &vect.Hash)
 }
 
-func (vect *InvVect) Deserialize(reader io.Reader) error {
-	return common.ReadElements(reader, &vect.Type, &vect.Hash)
+func (vect *InvVect) Deserialize(r io.Reader) error {
+	return common.ReadElements(r, &vect.Type, &vect.Hash)
 }

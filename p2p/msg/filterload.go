@@ -3,9 +3,9 @@ package msg
 import (
 	"io"
 
+	"fmt"
 	"github.com/elastos/Elastos.ELA.Utility/common"
 	"github.com/elastos/Elastos.ELA.Utility/p2p"
-	"fmt"
 )
 
 const (
@@ -34,24 +34,45 @@ func (msg *FilterLoad) MaxLength() uint32 {
 	return 3 + MaxFilterLoadFilterSize + 8
 }
 
-func (msg *FilterLoad) Serialize(writer io.Writer) error {
-	if msg.HashFuncs > MaxFilterLoadHashFuncs {
-		return fmt.Errorf("too many filter hash functions for message "+
-			"[count %v, max %v]", msg.HashFuncs, MaxFilterLoadHashFuncs)
+func (msg *FilterLoad) Serialize(w io.Writer) error {
+	size := len(msg.Filter)
+	if size > MaxFilterLoadFilterSize {
+		str := fmt.Sprintf("filterload filter size too large for message "+
+			"[size %v, max %v]", size, MaxFilterLoadFilterSize)
+		return common.FuncError("MsgFilterLoad.BtcEncode", str)
 	}
 
-	return common.WriteElements(writer, msg.Filter, msg.HashFuncs, msg.Tweak)
+	if msg.HashFuncs > MaxFilterLoadHashFuncs {
+		str := fmt.Sprintf("too many filter hash functions for message "+
+			"[count %v, max %v]", msg.HashFuncs, MaxFilterLoadHashFuncs)
+		return common.FuncError("MsgFilterLoad.BtcEncode", str)
+	}
+
+	err := common.WriteVarBytes(w, msg.Filter)
+	if err != nil {
+		return err
+	}
+
+	return common.WriteElements(w, msg.HashFuncs, msg.Tweak)
 }
 
 func (msg *FilterLoad) Deserialize(reader io.Reader) error {
-	err :=  common.ReadElements(reader, &msg.Filter, &msg.HashFuncs, &msg.Tweak)
+	var err error
+	msg.Filter, err = common.ReadVarBytes(reader, MaxFilterLoadFilterSize,
+		"filterload filter size")
+	if err != nil {
+		return err
+	}
+
+	err = common.ReadElements(reader, &msg.HashFuncs, &msg.Tweak)
 	if err != nil {
 		return err
 	}
 
 	if msg.HashFuncs > MaxFilterLoadHashFuncs {
-		return fmt.Errorf("too many filter hash functions for message "+
+		str := fmt.Sprintf("too many filter hash functions for message "+
 			"[count %v, max %v]", msg.HashFuncs, MaxFilterLoadHashFuncs)
+		return common.FuncError("FilterLoad.Deserialize", str)
 	}
 
 	return nil

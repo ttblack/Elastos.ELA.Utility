@@ -12,7 +12,3 @@ type FilterClear struct{ empty }
 func (msg *FilterClear) CMD() string {
 	return p2p.CmdFilterClear
 }
-
-func (msg *FilterClear) MaxLength() uint32 {
-	return 0
-}

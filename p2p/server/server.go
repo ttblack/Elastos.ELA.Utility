@@ -247,7 +247,7 @@ func (sp *serverPeer) OnVersion(_ *peer.Peer, v *msg.Version) {
 
 	// Choose whether or not to relay transactions before a filter command
 	// is received.
-	sp.setDisableRelayTx(v.Relay == 0)
+	sp.setDisableRelayTx(v.Relay)
 
 	// Update the address manager and request known addresses from the
 	// remote peer for outbound connections.  This is skipped when running

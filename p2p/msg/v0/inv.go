@@ -30,7 +30,25 @@ func (msg *Inv) MaxLength() uint32 {
 }
 
 func (msg *Inv) Serialize(w io.Writer) error {
-	return common.WriteElements(w, uint32(len(msg.Hashes)), msg.Hashes)
+	// Limit to max inventory vectors per message.
+	count := len(msg.Hashes)
+	if count > MaxInvPerMsg {
+		str := fmt.Sprintf("too many invvect in message [%v]", count)
+		return common.FuncError("Inv.Serialize", str)
+	}
+
+	err := common.WriteUint32(w, uint32(len(msg.Hashes)))
+	if err != nil {
+		return err
+	}
+
+	for _, hash := range msg.Hashes {
+		if err := hash.Serialize(w); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (msg *Inv) Deserialize(r io.Reader) error {
@@ -38,18 +56,24 @@ func (msg *Inv) Deserialize(r io.Reader) error {
 	if err != nil {
 		return err
 	}
+
 	// Limit to max inventory vectors per message.
 	if count > MaxInvPerMsg {
-		return fmt.Errorf("too many invvect in message [%v]", count)
+		str := fmt.Sprintf("too many invvect in message [%v]", count)
+		return common.FuncError("Inv.Deserialize", str)
 	}
 
+	// Create a contiguous slice of inventory vectors to deserialize into in
+	// order to reduce the number of allocations.
+	hashes := make([]common.Uint256, count)
 	msg.Hashes = make([]*common.Uint256, 0, count)
 	for i := uint32(0); i < count; i++ {
-		var hash common.Uint256
-		if err := hash.Deserialize(r); err != nil {
+		hash := &hashes[i]
+		err := hash.Deserialize(r)
+		if err != nil {
 			return err
 		}
-		msg.Hashes = append(msg.Hashes, &hash)
+		msg.Hashes = append(msg.Hashes, hash)
 	}
 
 	return nil

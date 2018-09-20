@@ -27,9 +27,9 @@ func (msg *GetData) MaxLength() uint32 {
 }
 
 func (msg *GetData) Serialize(w io.Writer) error {
-	return common.WriteElement(w, msg.Hash)
+	return msg.Hash.Serialize(w)
 }
 
 func (msg *GetData) Deserialize(r io.Reader) error {
-	return common.ReadElement(r, &msg.Hash)
+	return msg.Hash.Deserialize(r)
 }

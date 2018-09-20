@@ -1,10 +1,11 @@
 package msg
 
 import (
+	"fmt"
 	"io"
 
-	"github.com/elastos/Elastos.ELA.Utility/p2p"
 	"github.com/elastos/Elastos.ELA.Utility/common"
+	"github.com/elastos/Elastos.ELA.Utility/p2p"
 )
 
 const (
@@ -26,18 +27,23 @@ func (msg *FilterAdd) CMD() string {
 }
 
 func (msg *FilterAdd) MaxLength() uint32 {
-	return 9 + MaxFilterAddDataSize
+	return 3 + MaxFilterAddDataSize
 }
 
 func (msg *FilterAdd) Serialize(writer io.Writer) error {
+	size := len(msg.Data)
+	if size > MaxFilterAddDataSize {
+		str := fmt.Sprintf("filteradd size too large for message "+
+			"[size %v, max %v]", size, MaxFilterAddDataSize)
+		return common.FuncError("FilterAdd.Serialize", str)
+	}
+
 	return common.WriteVarBytes(writer, msg.Data)
 }
 
 func (msg *FilterAdd) Deserialize(reader io.Reader) error {
 	var err error
-	msg.Data, err = common.ReadVarBytes(reader)
-	if err != nil {
-		return err
-	}
-	return nil
+	msg.Data, err = common.ReadVarBytes(reader, MaxFilterAddDataSize,
+		"filteradd data")
+	return err
 }

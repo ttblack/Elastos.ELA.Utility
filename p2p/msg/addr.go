@@ -31,36 +31,49 @@ func (msg *Addr) MaxLength() uint32 {
 	return 8 + (MaxAddrPerMsg * 42)
 }
 
-func (msg *Addr) Serialize(writer io.Writer) error {
-	if err := common.WriteUint64(writer, uint64(len(msg.AddrList))); err != nil {
+func (msg *Addr) Serialize(w io.Writer) error {
+	// Protocol versions before MultipleAddressVersion only allowed 1 address
+	// per message.
+	count := len(msg.AddrList)
+	if count > MaxAddrPerMsg {
+		str := fmt.Sprintf("too many addresses for message "+
+			"[count %v, max %v]", count, MaxAddrPerMsg)
+		return common.FuncError("Addr.Serialize", str)
+	}
+
+	err := common.WriteUint64(w, uint64(count))
+	if err != nil {
 		return err
 	}
 
-	for i := range msg.AddrList {
-		if err := msg.AddrList[i].Serialize(writer); err != nil {
+	for _, na := range msg.AddrList {
+		if err := na.Serialize(w); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (msg *Addr) Deserialize(reader io.Reader) error {
-	count, err := common.ReadUint64(reader)
+func (msg *Addr) Deserialize(r io.Reader) error {
+	count, err := common.ReadUint64(r)
 	if err != nil {
 		return err
 	}
+
+	// Limit to max addresses per message.
 	if count > MaxAddrPerMsg {
 		return fmt.Errorf("Addr.Deserialize too many addresses"+
 			" for message [count %v, max %v]", count, MaxAddrPerMsg)
 	}
 
+	addrList := make([]p2p.NetAddress, count)
 	msg.AddrList = make([]*p2p.NetAddress, 0, count)
 	for i := uint64(0); i < count; i++ {
-		var addr p2p.NetAddress
-		if err := addr.Deserialize(reader); err != nil {
+		na := &addrList[i]
+		if err := na.Deserialize(r); err != nil {
 			return err
 		}
-		msg.AddrList = append(msg.AddrList, &addr)
+		msg.AddrList = append(msg.AddrList, na)
 	}
 	return nil
 }

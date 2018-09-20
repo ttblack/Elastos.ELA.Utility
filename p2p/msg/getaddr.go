@@ -13,8 +13,4 @@ func (msg *GetAddr) CMD() string {
 	return p2p.CmdGetAddr
 }
 
-func (msg *GetAddr) MaxLength() uint32 {
-	return 0
-}
-
 func NewGetAddr() *GetAddr {return &GetAddr{}}

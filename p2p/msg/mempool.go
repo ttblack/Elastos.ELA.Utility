@@ -12,7 +12,3 @@ type MemPool struct{ empty }
 func (msg *MemPool) CMD() string {
 	return p2p.CmdMemPool
 }
-
-func (msg *MemPool) MaxLength() uint32 {
-	return 0
-}
