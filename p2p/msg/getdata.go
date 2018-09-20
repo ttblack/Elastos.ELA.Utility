@@ -12,10 +12,7 @@ type GetData struct {
 }
 
 func NewGetData() *GetData {
-	msg := &GetData{
-		Inv: *NewInv(),
-	}
-	return msg
+	return &GetData{}
 }
 
 func (msg *GetData) CMD() string {

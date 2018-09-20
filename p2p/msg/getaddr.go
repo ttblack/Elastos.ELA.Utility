@@ -13,4 +13,4 @@ func (msg *GetAddr) CMD() string {
 	return p2p.CmdGetAddr
 }
 
-func NewGetAddr() *GetAddr {return &GetAddr{}}
+func NewGetAddr() *GetAddr { return &GetAddr{} }

@@ -75,5 +75,6 @@ func (msg *Addr) Deserialize(r io.Reader) error {
 		}
 		msg.AddrList = append(msg.AddrList, na)
 	}
+
 	return nil
 }

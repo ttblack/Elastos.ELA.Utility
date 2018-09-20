@@ -1,9 +1,9 @@
 package msg
 
 import (
+	"fmt"
 	"io"
 
-	"fmt"
 	"github.com/elastos/Elastos.ELA.Utility/common"
 	"github.com/elastos/Elastos.ELA.Utility/p2p"
 )

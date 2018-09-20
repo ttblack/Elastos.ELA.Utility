@@ -12,10 +12,7 @@ type NotFound struct {
 }
 
 func NewNotFound() *NotFound {
-	msg := &NotFound{
-		Inv: *NewInv(),
-	}
-	return msg
+	return &NotFound{}
 }
 
 func (msg *NotFound) CMD() string {
