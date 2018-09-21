@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/elastos/Elastos.ELA.Utility/p2p"
-	"github.com/elastos/Elastos.ELA.Utility/p2p/peer"
 )
 
 const (
@@ -32,8 +31,8 @@ type Config struct {
 	BanDuration      time.Duration
 	Whitelists       []*net.IPNet
 	TargetOutbound   int
-	OnNewPeer        func(*peer.Peer)
-	OnDonePeer       func(*peer.Peer)
+	OnNewPeer        func(IPeer)
+	OnDonePeer       func(IPeer)
 	MakeEmptyMessage func(string) (p2p.Message, error)
 	BestHeight       func() uint64
 }
@@ -74,8 +73,8 @@ func NewDefaultConfig(
 	magic uint32,
 	defaultPort uint16,
 	seeds, listenAddrs []string,
-	onNewPeer func(*peer.Peer),
-	onDonePeer func(*peer.Peer),
+	onNewPeer func(IPeer),
+	onDonePeer func(IPeer),
 	makeEmptyMessage func(string) (p2p.Message, error),
 	bestHeight func() uint64) *Config {
 	return &Config{

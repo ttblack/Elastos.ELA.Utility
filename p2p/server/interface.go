@@ -18,9 +18,12 @@ type IPeer interface {
 	// ToPeer returns the underlying peer instance.
 	ToPeer() *peer.Peer
 
-	// IsTxRelayDisabled returns whether or not the peer has disabled
-	// transaction relay.
-	IsTxRelayDisabled() bool
+	// AddBanScore increases the persistent and decaying ban score fields by the
+	// values passed as parameters. If the resulting score exceeds half of the ban
+	// threshold, a warning is logged including the reason provided. Further, if
+	// the score is above the ban threshold, the peer will be banned and
+	// disconnected.
+	AddBanScore(persistent, transient uint32, reason string)
 
 	// BanScore returns the current integer value that represents how close
 	// the peer is to being banned.

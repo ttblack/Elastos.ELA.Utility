@@ -128,8 +128,6 @@ type serverPeer struct {
 	connReq        *connmgr.ConnReq
 	server         *server
 	persistent     bool
-	relayMtx       sync.Mutex
-	disableRelayTx bool
 	sentAddrs      bool
 	isWhitelisted  bool
 	knownAddresses map[string]struct{}
@@ -162,25 +160,6 @@ func (sp *serverPeer) addressKnown(na *p2p.NetAddress) bool {
 	return exists
 }
 
-// setDisableRelayTx toggles relaying of transactions for the given peer.
-// It is safe for concurrent access.
-func (sp *serverPeer) setDisableRelayTx(disable bool) {
-	sp.relayMtx.Lock()
-	sp.disableRelayTx = disable
-	sp.relayMtx.Unlock()
-}
-
-// relayTxDisabled returns whether or not relaying of transactions for the given
-// peer is disabled.
-// It is safe for concurrent access.
-func (sp *serverPeer) relayTxDisabled() bool {
-	sp.relayMtx.Lock()
-	isDisabled := sp.disableRelayTx
-	sp.relayMtx.Unlock()
-
-	return isDisabled
-}
-
 // pushAddrMsg sends an addr message to the connected peer using the provided
 // addresses.
 func (sp *serverPeer) pushAddrMsg(addresses []*p2p.NetAddress) {
@@ -200,54 +179,12 @@ func (sp *serverPeer) pushAddrMsg(addresses []*p2p.NetAddress) {
 	sp.addKnownAddresses(known)
 }
 
-// addBanScore increases the persistent and decaying ban score fields by the
-// values passed as parameters. If the resulting score exceeds half of the ban
-// threshold, a warning is logged including the reason provided. Further, if
-// the score is above the ban threshold, the peer will be banned and
-// disconnected.
-func (sp *serverPeer) addBanScore(persistent, transient uint32, reason string) {
-	cfg := sp.server.cfg
-	// No warning is logged and no score is calculated if banning is disabled.
-	if cfg.DisableBanning {
-		return
-	}
-	if sp.isWhitelisted {
-		log.Debugf("Misbehaving whitelisted peer %s: %s", sp, reason)
-		return
-	}
-
-	warnThreshold := cfg.BanThreshold >> 1
-	if transient == 0 && persistent == 0 {
-		// The score is not being increased, but a warning message is still
-		// logged if the score is above the warn threshold.
-		score := sp.banScore.Int()
-		if score > warnThreshold {
-			log.Warnf("Misbehaving peer %s: %s -- ban score is %d, "+
-				"it was not increased this time", sp, reason, score)
-		}
-		return
-	}
-	score := sp.banScore.Increase(persistent, transient)
-	if score > warnThreshold {
-		log.Warnf("Misbehaving peer %s: %s -- ban score increased to %d", sp, reason, score)
-		if score > cfg.BanThreshold {
-			log.Warnf("Misbehaving peer %s -- banning and disconnecting", sp)
-			sp.server.BanPeer(sp)
-			sp.Disconnect()
-		}
-	}
-}
-
 // OnVersion is invoked when a peer receives a version message and is
 // used to negotiate the protocol version details as well as kick start
 // the communications.
 func (sp *serverPeer) OnVersion(_ *peer.Peer, v *msg.Version) {
 	// Signal the new peer.
-	sp.server.cfg.OnNewPeer(sp.Peer)
-
-	// Choose whether or not to relay transactions before a filter command
-	// is received.
-	sp.setDisableRelayTx(v.Relay)
+	sp.server.cfg.OnNewPeer(sp)
 
 	// Update the address manager and request known addresses from the
 	// remote peer for outbound connections.  This is skipped when running
@@ -351,13 +288,42 @@ func (sp *serverPeer) ToPeer() *peer.Peer {
 	return sp.Peer
 }
 
-// IsTxRelayDisabled returns whether or not the peer has disabled transaction
-// relay.
-//
-// This function is safe for concurrent access and is part of the IPeer
-// interface implementation.
-func (sp *serverPeer) IsTxRelayDisabled() bool {
-	return sp.disableRelayTx
+// addBanScore increases the persistent and decaying ban score fields by the
+// values passed as parameters. If the resulting score exceeds half of the ban
+// threshold, a warning is logged including the reason provided. Further, if
+// the score is above the ban threshold, the peer will be banned and
+// disconnected.
+func (sp *serverPeer) AddBanScore(persistent, transient uint32, reason string) {
+	cfg := sp.server.cfg
+	// No warning is logged and no score is calculated if banning is disabled.
+	if cfg.DisableBanning {
+		return
+	}
+	if sp.isWhitelisted {
+		log.Debugf("Misbehaving whitelisted peer %s: %s", sp, reason)
+		return
+	}
+
+	warnThreshold := cfg.BanThreshold >> 1
+	if transient == 0 && persistent == 0 {
+		// The score is not being increased, but a warning message is still
+		// logged if the score is above the warn threshold.
+		score := sp.banScore.Int()
+		if score > warnThreshold {
+			log.Warnf("Misbehaving peer %s: %s -- ban score is %d, "+
+				"it was not increased this time", sp, reason, score)
+		}
+		return
+	}
+	score := sp.banScore.Increase(persistent, transient)
+	if score > warnThreshold {
+		log.Warnf("Misbehaving peer %s: %s -- ban score increased to %d", sp, reason, score)
+		if score > cfg.BanThreshold {
+			log.Warnf("Misbehaving peer %s -- banning and disconnecting", sp)
+			sp.server.BanPeer(sp)
+			sp.Disconnect()
+		}
+	}
 }
 
 // BanScore returns the current integer value that represents how close the peer
@@ -743,7 +709,7 @@ func (s *server) peerDoneHandler(sp *serverPeer) {
 
 	// Only tell sync manager we are gone if we ever told it we existed.
 	if sp.VersionKnown() {
-		s.cfg.OnDonePeer(sp.Peer)
+		s.cfg.OnDonePeer(sp)
 	}
 	close(sp.quit)
 }
