@@ -24,6 +24,17 @@ func NewInv() *Inv {
 	return msg
 }
 
+func NewInvSize(size uint) *Inv {
+	// Limit the specified hint to the maximum allow per message.
+	if size > MaxInvPerMsg {
+		size = MaxInvPerMsg
+	}
+
+	return &Inv{
+		InvList: make([]*InvVect, 0, size),
+	}
+}
+
 // AddInvVect adds an inventory vector to the message.
 func (msg *Inv) AddInvVect(iv *InvVect) error {
 	if len(msg.InvList)+1 > MaxInvPerMsg {
