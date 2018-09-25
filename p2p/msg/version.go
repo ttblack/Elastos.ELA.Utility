@@ -1,10 +1,10 @@
 package msg
 
 import (
-	"github.com/elastos/Elastos.ELA.Utility/common"
 	"io"
 	"time"
 
+	"github.com/elastos/Elastos.ELA.Utility/common"
 	"github.com/elastos/Elastos.ELA.Utility/p2p"
 )
 
