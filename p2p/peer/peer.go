@@ -456,8 +456,35 @@ func (p *Peer) handlePongMsg(pong *msg.Pong) {
 	p.statsMtx.Unlock()
 }
 
+func (p *Peer) makeEmptyMessage(cmd string) (p2p.Message, error) {
+	var message p2p.Message
+	switch cmd {
+	case p2p.CmdVersion:
+		message = &msg.Version{}
+
+	case p2p.CmdVerAck:
+		message = &msg.VerAck{}
+
+	case p2p.CmdGetAddr:
+		message = &msg.GetAddr{}
+
+	case p2p.CmdAddr:
+		message = &msg.Addr{}
+
+	case p2p.CmdPing:
+		message = &msg.Ping{}
+
+	case p2p.CmdPong:
+		message = &msg.Pong{}
+
+	default:
+		return p.cfg.MakeEmptyMessage(cmd)
+	}
+	return message, nil
+}
+
 func (p *Peer) readMessage() (p2p.Message, error) {
-	msg, err := p2p.ReadMessage(p.conn, p.cfg.Magic, p.cfg.MakeEmptyMessage)
+	msg, err := p2p.ReadMessage(p.conn, p.cfg.Magic, p.makeEmptyMessage)
 	// Use closures to log expensive operations so they are only run when
 	// the logging level requires it.
 	log.Debugf("%v", newLogClosure(func() string {
@@ -882,7 +909,7 @@ func (p *Peer) start() error {
 	go p.pingHandler()
 
 	// Send our verack message now that the IO processing machinery has started.
-	p.SendMessage(new(msg.VerAck), nil)
+	p.SendMessage(&msg.VerAck{}, nil)
 	return nil
 }
 
