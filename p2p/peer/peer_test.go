@@ -80,7 +80,7 @@ func pipe(c1, c2 *conn) (*conn, *conn) {
 
 // peerStats holds the expected peer stats used for testing peer.
 type peerStats struct {
-	wantServices        p2p.ServiceFlag
+	wantServices        uint64
 	wantProtocolVersion uint32
 	wantConnected       bool
 	wantVersionKnown    bool
@@ -206,7 +206,7 @@ func TestPeerConnection(t *testing.T) {
 	peer2Cfg := &peer.Config{
 		Magic:            123123,
 		ProtocolVersion:  p2p.EIP001Version,
-		Services:         p2p.SFNodeNetwork,
+		Services:         1,
 		DisableRelayTx:   true,
 		HostToNetAddress: nil,
 		MakeEmptyMessage: makeMessage,
@@ -234,7 +234,7 @@ func TestPeerConnection(t *testing.T) {
 		wantTimeOffset:      int64(0),
 	}
 	wantStats2 := peerStats{
-		wantServices:        p2p.SFNodeNetwork,
+		wantServices:        1,
 		wantProtocolVersion: p2p.EIP001Version,
 		wantConnected:       true,
 		wantVersionKnown:    true,

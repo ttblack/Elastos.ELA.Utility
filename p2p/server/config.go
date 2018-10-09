@@ -17,7 +17,7 @@ const (
 // Config is a descriptor which specifies the server instance configuration.
 type Config struct {
 	MagicNumber      uint32
-	Services         p2p.ServiceFlag
+	Services         uint64
 	SeedPeers        []string
 	ListenAddrs      []string
 	ExternalIPs      []string
@@ -71,6 +71,7 @@ func dialTimeout(addr net.Addr) (net.Conn, error) {
 // for the server.
 func NewDefaultConfig(
 	magic uint32,
+	services uint64,
 	defaultPort uint16,
 	seeds, listenAddrs []string,
 	onNewPeer func(IPeer),
@@ -79,7 +80,7 @@ func NewDefaultConfig(
 	bestHeight func() uint64) *Config {
 	return &Config{
 		MagicNumber:      magic,
-		Services:         defaultServices,
+		Services:         services,
 		SeedPeers:        seeds,
 		ListenAddrs:      listenAddrs,
 		ExternalIPs:      nil,

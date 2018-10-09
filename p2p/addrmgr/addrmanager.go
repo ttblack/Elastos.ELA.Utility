@@ -520,7 +520,7 @@ func (a *AddrManager) DeserializeNetAddress(addr string) (*p2p.NetAddress, error
 		return nil, err
 	}
 
-	return a.HostToNetAddress(host, uint16(port), p2p.SFNodeNetwork)
+	return a.HostToNetAddress(host, uint16(port), 0)
 }
 
 // Start begins the core address handler which manages a pool of known
@@ -674,7 +674,7 @@ func (a *AddrManager) reset() {
 // HostToNetAddress returns a netaddress given a host address.  If the address
 // is a Tor .onion address this will be taken care of.  Else if the host is
 // not an IP address it will be resolved (via Tor if required).
-func (a *AddrManager) HostToNetAddress(host string, port uint16, services p2p.ServiceFlag) (*p2p.NetAddress, error) {
+func (a *AddrManager) HostToNetAddress(host string, port uint16, services uint64) (*p2p.NetAddress, error) {
 	// Tor address is 16 char base32 + ".onion"
 	var ip net.IP
 	if len(host) == 22 && host[16:] == ".onion" {
@@ -1063,8 +1063,7 @@ func (a *AddrManager) GetBestLocalAddress(remoteAddr *p2p.NetAddress) *p2p.NetAd
 		} else {
 			ip = net.IPv4zero
 		}
-		services := p2p.SFNodeNetwork | p2p.SFNodeBloom
-		bestAddress = p2p.NewNetAddressIPPort(ip, 0, services)
+		bestAddress = p2p.NewNetAddressIPPort(ip, 0, 0)
 	}
 
 	return bestAddress

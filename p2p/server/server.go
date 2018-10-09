@@ -20,10 +20,6 @@ import (
 )
 
 const (
-	// defaultServices describes the default services that are supported by
-	// the server.
-	defaultServices = p2p.SFNodeNetwork | p2p.SFNodeBloom
-
 	// defaultTargetOutbound is the default number of outbound peers to target.
 	defaultTargetOutbound = 8
 
@@ -1124,7 +1120,7 @@ func newServer(origCfg *Config) (*server, error) {
 	var nat NAT
 	if !cfg.DisableListen {
 		var err error
-		listeners, nat, err = initListeners(amgr, cfg, defaultServices)
+		listeners, nat, err = initListeners(amgr, cfg)
 		if err != nil {
 			return nil, err
 		}
@@ -1224,7 +1220,7 @@ func newServer(origCfg *Config) (*server, error) {
 // initListeners initializes the configured net listeners and adds any bound
 // addresses to the address manager. Returns the listeners and a NAT interface,
 // which is non-nil if UPnP is in use.
-func initListeners(amgr *addrmgr.AddrManager, cfg Config, services p2p.ServiceFlag) ([]net.Listener, NAT, error) {
+func initListeners(amgr *addrmgr.AddrManager, cfg Config) ([]net.Listener, NAT, error) {
 	// Listen for TCP connections at the configured addresses
 	netAddrs, err := parseListeners(cfg.ListenAddrs)
 	if err != nil {
@@ -1257,7 +1253,7 @@ func initListeners(amgr *addrmgr.AddrManager, cfg Config, services p2p.ServiceFl
 				}
 				eport = uint16(port)
 			}
-			na, err := amgr.HostToNetAddress(host, eport, services)
+			na, err := amgr.HostToNetAddress(host, eport, cfg.Services)
 			if err != nil {
 				log.Warnf("Not adding %s as externalip: %v", sip, err)
 				continue
@@ -1281,7 +1277,7 @@ func initListeners(amgr *addrmgr.AddrManager, cfg Config, services p2p.ServiceFl
 		// Add bound addresses to address manager to be advertised to peers.
 		for _, listener := range listeners {
 			addr := listener.Addr().String()
-			err := addLocalAddress(amgr, addr, services)
+			err := addLocalAddress(amgr, addr, cfg.Services)
 			if err != nil {
 				log.Warnf("Skipping bound address %s: %v", addr, err)
 			}
@@ -1331,7 +1327,7 @@ func addrStringToNetAddr(addr string) (net.Addr, error) {
 
 // addLocalAddress adds an address that this node is listening on to the
 // address manager so that it may be relayed to peers.
-func addLocalAddress(addrMgr *addrmgr.AddrManager, addr string, services p2p.ServiceFlag) error {
+func addLocalAddress(addrMgr *addrmgr.AddrManager, addr string, services uint64) error {
 	host, portStr, err := net.SplitHostPort(addr)
 	if err != nil {
 		return err

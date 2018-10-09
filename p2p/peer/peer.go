@@ -43,7 +43,7 @@ type outMsg struct {
 type StatsSnap struct {
 	ID             uint64
 	Addr           string
-	Services       p2p.ServiceFlag
+	Services       uint64
 	RelayTx        uint8
 	LastSend       time.Time
 	LastRecv       time.Time
@@ -64,7 +64,7 @@ type MessageFunc func(peer *Peer, msg p2p.Message)
 type Config struct {
 	Magic            uint32
 	ProtocolVersion  uint32
-	Services         p2p.ServiceFlag
+	Services         uint64
 	DisableRelayTx   bool
 	HostToNetAddress HostToNetAddrFunc
 	MakeEmptyMessage func(cmd string) (p2p.Message, error)
@@ -97,7 +97,7 @@ func minUint32(a, b uint32) uint32 {
 
 // newNetAddress attempts to extract the IP address and port from the passed
 // net.Addr interface and create a NetAddress structure using that information.
-func newNetAddress(addr net.Addr, services p2p.ServiceFlag) (*p2p.NetAddress, error) {
+func newNetAddress(addr net.Addr, services uint64) (*p2p.NetAddress, error) {
 	// addr will be a net.TCPAddr when not using a proxy.
 	if tcpAddr, ok := addr.(*net.TCPAddr); ok {
 		ip := tcpAddr.IP
@@ -123,7 +123,7 @@ func newNetAddress(addr net.Addr, services p2p.ServiceFlag) (*p2p.NetAddress, er
 }
 
 // HostToNetAddrFunc is a func which takes a host, port, services and returns the netaddress.
-type HostToNetAddrFunc func(host string, port uint16, services p2p.ServiceFlag) (*p2p.NetAddress, error)
+type HostToNetAddrFunc func(host string, port uint16, services uint64) (*p2p.NetAddress, error)
 
 type Peer struct {
 	// The following variables must only be used atomically.
@@ -143,7 +143,7 @@ type Peer struct {
 	flagsMtx           sync.Mutex // protects the peer flags below
 	na                 *p2p.NetAddress
 	id                 uint64
-	services           p2p.ServiceFlag
+	services           uint64
 	versionKnown       bool
 	advertisedProtoVer uint32 // protocol version advertised by remote
 	protocolVersion    uint32 // negotiated protocol version
@@ -264,7 +264,7 @@ func (p *Peer) Inbound() bool {
 // Services returns the services flag of the remote peer.
 //
 // This function is safe for concurrent access.
-func (p *Peer) Services() p2p.ServiceFlag {
+func (p *Peer) Services() uint64 {
 	p.flagsMtx.Lock()
 	services := p.services
 	p.flagsMtx.Unlock()
@@ -793,7 +793,7 @@ func (p *Peer) handleRemoteVersionMsg(msg *msg.Version) error {
 	p.id = msg.Nonce
 
 	// Set the supported services for the peer to what the remote peer advertised.
-	p.services = p2p.ServiceFlag(msg.Services)
+	p.services = msg.Services
 	p.flagsMtx.Unlock()
 
 	return nil
@@ -838,7 +838,7 @@ func (p *Peer) localVersionMsg() (*msg.Version, error) {
 	msg := msg.NewVersion(p.cfg.ProtocolVersion, p.cfg.Services, nonce, p.cfg.BestHeight(), p.cfg.DisableRelayTx)
 
 	// Advertise the services flag
-	msg.Services = uint64(p.cfg.Services)
+	msg.Services = p.cfg.Services
 
 	// Advertise our max supported protocol version.
 	msg.Version = uint32(p.cfg.ProtocolVersion)
