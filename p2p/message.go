@@ -38,6 +38,7 @@ const (
 	CmdFilterLoad  = "filterload"
 	CmdMerkleBlock = "merkleblock"
 	CmdReject      = "reject"
+	CmdTxFilter    = "txfilter"
 )
 
 var (

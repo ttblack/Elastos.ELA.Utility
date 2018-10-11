@@ -56,15 +56,15 @@ func (msg *FilterLoad) Serialize(w io.Writer) error {
 	return common.WriteElements(w, msg.HashFuncs, msg.Tweak)
 }
 
-func (msg *FilterLoad) Deserialize(reader io.Reader) error {
+func (msg *FilterLoad) Deserialize(r io.Reader) error {
 	var err error
-	msg.Filter, err = common.ReadVarBytes(reader, MaxFilterLoadFilterSize,
+	msg.Filter, err = common.ReadVarBytes(r, MaxFilterLoadFilterSize,
 		"filterload filter size")
 	if err != nil {
 		return err
 	}
 
-	err = common.ReadElements(reader, &msg.HashFuncs, &msg.Tweak)
+	err = common.ReadElements(r, &msg.HashFuncs, &msg.Tweak)
 	if err != nil {
 		return err
 	}
