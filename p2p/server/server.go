@@ -632,7 +632,7 @@ func disconnectPeer(peerList map[uint64]*serverPeer, compareFunc func(*serverPee
 func newPeerConfig(sp *serverPeer) *peer.Config {
 	cfg := &peer.Config{
 		Magic:            sp.server.cfg.MagicNumber,
-		ProtocolVersion:  peer.MaxProtocolVersion,
+		ProtocolVersion:  sp.server.cfg.ProtocolVersion,
 		Services:         sp.server.cfg.Services,
 		DisableRelayTx:   sp.server.cfg.DisableRelayTx,
 		HostToNetAddress: sp.server.addrManager.HostToNetAddress,

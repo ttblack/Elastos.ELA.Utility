@@ -16,9 +16,6 @@ import (
 )
 
 const (
-	// MaxProtocolVersion is the max protocol version the peer supports.
-	MaxProtocolVersion = p2p.EIP001Version
-
 	// idleTimeout is the duration of inactivity before we time out a peer.
 	idleTimeout = 2 * time.Minute
 
