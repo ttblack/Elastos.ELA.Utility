@@ -1,21 +1,60 @@
 package elalog
 
+// Logger is an interface which describes a level-based logger.  A default
+// implementation of Logger is implemented by this package and can be created
+// by calling (*Backend).Logger.
 type Logger interface {
-	Info(e ...interface{})
-	Infof(format string, e ...interface{})
+	// Tracef formats message according to format specifier and writes to
+	// to log with LevelTrace.
+	Tracef(format string, params ...interface{})
 
-	Warn(e ...interface{})
-	Warnf(format string, e ...interface{})
+	// Debugf formats message according to format specifier and writes to
+	// log with LevelDebug.
+	Debugf(format string, params ...interface{})
 
-	Error(e ...interface{})
-	Errorf(format string, e ...interface{})
+	// Infof formats message according to format specifier and writes to
+	// log with LevelInfo.
+	Infof(format string, params ...interface{})
 
-	Fatal(e ...interface{})
-	Fatalf(format string, e ...interface{})
+	// Warnf formats message according to format specifier and writes to
+	// to log with LevelWarn.
+	Warnf(format string, params ...interface{})
 
-	Trace(e ...interface{})
-	Tracef(format string, e ...interface{})
+	// Errorf formats message according to format specifier and writes to
+	// to log with LevelError.
+	Errorf(format string, params ...interface{})
 
-	Debug(e ...interface{})
-	Debugf(format string, e ...interface{})
+	// Fatalf formats message according to format specifier and writes to
+	// log with LevelFatal.
+	Fatalf(format string, params ...interface{})
+
+	// Trace formats message using the default formats for its operands
+	// and writes to log with LevelTrace.
+	Trace(v ...interface{})
+
+	// Debug formats message using the default formats for its operands
+	// and writes to log with LevelDebug.
+	Debug(v ...interface{})
+
+	// Info formats message using the default formats for its operands
+	// and writes to log with LevelInfo.
+	Info(v ...interface{})
+
+	// Warn formats message using the default formats for its operands
+	// and writes to log with LevelWarn.
+	Warn(v ...interface{})
+
+	// Error formats message using the default formats for its operands
+	// and writes to log with LevelError.
+	Error(v ...interface{})
+
+	// Fatal formats message using the default formats for its operands
+	// and writes to log with LevelFatal.
+	Fatal(v ...interface{})
+
+	// Level returns the current logging level.
+	Level() Level
+
+	// SetLevel changes the logging level to the passed level.
+	SetLevel(level Level)
 }

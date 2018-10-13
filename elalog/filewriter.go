@@ -1,0 +1,152 @@
+package elalog
+
+import (
+	"fmt"
+	"io/ioutil"
+	"os"
+	"strings"
+	"sync/atomic"
+	"time"
+)
+
+const (
+	KBSize = 1024
+	MBSize = 1024 * KBSize
+	GBSize = 1024 * MBSize
+)
+
+const (
+	defaultMaxFileSize   int64 = 20 * MBSize // 20MB
+	defaultMaxFolderSize int64 = 5 * GBSize  // 5GM
+)
+
+type fileWriter struct {
+	// path is the folder path to put all log files.
+	path          string
+	maxFileSize   int64
+	maxFolderSize int64
+
+	writeChan  chan []byte
+	writeReply chan struct{}
+}
+
+func (w *fileWriter) Write(buf []byte) (int, error) {
+	w.writeChan <- buf
+	<-w.writeReply
+	return len(buf), nil
+}
+
+func (w *fileWriter) writeHandler() {
+	var current *os.File
+	var fileSize int64
+	var folderSize int64
+
+	for {
+		select {
+		case buf := <-w.writeChan:
+			var bufLen = int64(len(buf))
+
+			// create new log file if current file is nil or reach max
+			// size.
+			if current == nil ||
+				atomic.AddInt64(&fileSize, bufLen) >= w.maxFileSize {
+
+				// force create new log file
+				var err error
+				var file *os.File
+				for file, err = newLogFile(w.path); err != nil; {
+					file, err = newLogFile(w.path)
+				}
+
+				// close previous log file in an other goroutine.
+				go func(file *os.File) {
+					if file != nil {
+						// force close file
+						for err := file.Close(); err != nil; {
+							err = file.Close()
+						}
+					}
+				}(current)
+
+				current = file
+				atomic.StoreInt64(&fileSize, 0)
+
+			}
+
+			// force write buffer to file.
+			for _, err := current.Write(buf); err != nil; {
+				_, err = current.Write(buf)
+			}
+			w.writeReply <- struct{}{}
+
+			// check folder size by check buf interval, if folder size
+			// reach max size, remove oldest log file.
+			if atomic.AddInt64(&folderSize, bufLen) >= w.maxFolderSize {
+				var total int64
+				files, _ := ioutil.ReadDir(w.path)
+				for _, f := range files {
+					total += f.Size()
+				}
+
+				if total < w.maxFolderSize {
+					continue
+				}
+
+				// Get the oldest log file
+				file := files[0]
+				// Remove it
+				os.Remove(w.path + file.Name())
+
+				total -= file.Size()
+
+				atomic.StoreInt64(&folderSize, total)
+			}
+
+		}
+	}
+}
+
+func newLogFile(path string) (*os.File, error) {
+	if dir, err := os.Stat(path); err == nil {
+		if !dir.IsDir() {
+			return nil, fmt.Errorf("open %s: not a directory", path)
+		}
+
+	} else if os.IsNotExist(err) {
+		if err := os.MkdirAll(path, 0766); err != nil {
+			return nil, err
+		}
+
+	} else {
+		return nil, err
+	}
+
+	return os.OpenFile(path+time.Now().Format("2006-01-02_15.04.05")+
+		".log", os.O_RDWR|os.O_CREATE, 0666)
+}
+
+func NewFileWriter(path string, maxFileSize, maxFolderSize int64) *fileWriter {
+	// ensure path format.
+	if !strings.HasSuffix(path, "/") {
+		path += "/"
+	}
+
+	w := fileWriter{
+		path:          path,
+		maxFileSize:   defaultMaxFileSize,
+		maxFolderSize: defaultMaxFolderSize,
+		writeChan:     make(chan []byte, 1),
+		writeReply:    make(chan struct{}, 1),
+	}
+
+	if maxFileSize > 0 {
+		w.maxFileSize = maxFileSize
+	}
+	if maxFolderSize > 0 {
+		w.maxFolderSize = maxFolderSize
+	}
+
+	go w.writeHandler()
+
+	return &w
+}
