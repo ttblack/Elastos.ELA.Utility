@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	KBSize = 1024
-	MBSize = 1024 * KBSize
-	GBSize = 1024 * MBSize
+	KBSize = 1024 << (10 * iota)
+	MBSize
+	GBSize
 )
 
 const (
