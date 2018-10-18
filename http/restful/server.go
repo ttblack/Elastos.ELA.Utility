@@ -16,7 +16,9 @@ type response struct {
 	Desc   string      `json:"Desc,omitempty"`
 }
 
+// Config is the configuration of the RESTful server.
 type Config struct {
+	Path      string
 	ServePort uint16
 	NetListen func(port uint16) (net.Listener, error)
 	Response  func(result interface{}, err error) []byte
@@ -130,7 +132,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 func (s *Server) Start() error {
 	if s.cfg.ServePort == 0 {
-		return fmt.Errorf("restful serve port not configured")
+		return fmt.Errorf("restful ServePort not configured")
 	}
 
 	var err error
@@ -144,7 +146,12 @@ func (s *Server) Start() error {
 		return err
 	}
 
-	s.server = &http.Server{Handler: s}
+	if s.cfg.Path == "" {
+		s.server = &http.Server{Handler: s}
+	} else {
+		http.Handle(s.cfg.Path, s)
+		s.server = &http.Server{}
+	}
 	return s.server.Serve(listener)
 }
 
