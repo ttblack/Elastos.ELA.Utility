@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"sync"
 
@@ -65,10 +66,17 @@ func (r *response) write(w http.ResponseWriter, httpStatus int) {
 	w.Write(data)
 }
 
+// Config is the configuration of the JSON-RPC server.
+type Config struct {
+	Path      string
+	ServePort uint16
+	NetListen func(port uint16) (net.Listener, error)
+}
+
 // Server is the JSON-RPC server instance class.
 type Server struct {
+	cfg    Config
 	server *http.Server
-	port   uint16
 
 	mutex     sync.Mutex
 	paramsMap map[string][]string
@@ -86,9 +94,28 @@ func (s *Server) RegisterAction(name string, handler Handler, params ...string) 
 }
 
 func (s *Server) Start() error {
-	http.HandleFunc("/", s.handle)
-	s.server = &http.Server{Addr: fmt.Sprint(":", s.port)}
-	return s.server.ListenAndServe()
+	if s.cfg.ServePort == 0 {
+		return fmt.Errorf("jsonrpc ServePort not configured")
+	}
+
+	var err error
+	var listener net.Listener
+	if s.cfg.NetListen != nil {
+		listener, err = s.cfg.NetListen(s.cfg.ServePort)
+	} else {
+		listener, err = net.Listen("tcp", fmt.Sprint(":", s.cfg.ServePort))
+	}
+	if err != nil {
+		return err
+	}
+
+	if s.cfg.Path == "" {
+		s.server = &http.Server{Handler: s}
+	} else {
+		http.Handle(s.cfg.Path, s)
+		s.server = &http.Server{}
+	}
+	return s.server.Serve(listener)
 }
 
 func (s *Server) Stop() error {
@@ -111,7 +138,7 @@ func (s *Server) parseParams(method string, array []interface{}) util.Params {
 	return params
 }
 
-func (s *Server) handle(w http.ResponseWriter, r *http.Request) {
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//JSON RPC commands should be POSTs
 	if r.Method != "POST" {
 		log.Warn("HTTP JSON RPC Handle - Method!=\"POST\"")
@@ -185,8 +212,8 @@ func (s *Server) handle(w http.ResponseWriter, r *http.Request) {
 }
 
 // NewServer creates and return a JSON-RPC server instance.
-func NewServer(port uint16) *Server {
-	return &Server{port: port}
+func NewServer(cfg *Config) *Server {
+	return &Server{cfg: *cfg}
 }
 
 func min(a int, b int) int {
