@@ -226,7 +226,7 @@ func GetSignStatus(code, param []byte) (haveSign, needSign int, err error) {
 		return haveSign, int(getM(code)), nil
 	} else if scriptType == SMARTCONTRACT {
 		signed := len(param)
-		return signed, 1, nil
+		return signed, -1, nil
 	}
 
 	return -1, -1, errors.New("invalid redeem script type")
