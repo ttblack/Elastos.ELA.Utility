@@ -21,6 +21,7 @@ const (
 	PrefixRegisterId = 0x67
 	PrefixMultisig   = 0x12
 	PrefixCrossChain = 0x4B
+	PrefixSmartContract = 0x1C
 )
 
 type Uint168 [UINT168SIZE]uint8
